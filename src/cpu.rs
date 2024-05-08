@@ -24,6 +24,11 @@ impl CPU {
         self.update_zero_and_negative_flags(self.register_x)
     }
 
+    fn inx(&mut self) {
+        self.register_x = self.register_x.wrapping_add(1);
+        self.update_zero_and_negative_flags(self.register_x);
+    }
+
     fn update_zero_and_negative_flags(&mut self, result: u8) {
         self.status = if result == 0 {
             self.status | 0b0000_0010
@@ -55,6 +60,8 @@ impl CPU {
 
                 0xAA => self.tax(),
 
+                0xE8 => self.inx(),
+
                 0x00 => return,
 
                 _ => todo!(),
@@ -65,18 +72,21 @@ impl CPU {
 
 #[cfg(test)]
 mod test {
+    use std::vec;
+
     use super::*;
 
     #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
+
         cpu.interpret(vec![0xa9, 0x05, 0x00]);
 
         // register_a = 0x05
         // status = 0b0000_0010 == 2
         // program_counter = 2
         assert_eq!(cpu.register_a, 0x05);
-        assert!(cpu.status & 0b0000_0010 == 0b10);
+        assert!(cpu.status & 0b0000_0010 == 0);
         assert!(cpu.status & 0b1000_0000 == 0);
     }
 
@@ -87,7 +97,7 @@ mod test {
         cpu.interpret(vec![0xa9, 0x00, 0x00]);
 
         // status = 0b0000_0010 == 2
-        assert!(cpu.status & 0b0000_0010 == 0b10);
+        assert!(cpu.status & 0b0000_0010 == 0b10)
     }
 
     #[test]
@@ -97,6 +107,25 @@ mod test {
         cpu.register_a = 10;
         cpu.interpret(vec![0xaa, 0x00]);
 
-        assert_eq!(cpu.register_x, 10);
+        assert_eq!(cpu.register_x, 10)
+    }
+
+    #[test]
+    fn test_5_ops_working_together() {
+        let mut cpu = CPU::new();
+
+        cpu.interpret(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
+
+        assert_eq!(cpu.register_x, 0xc1)
+    }
+
+    #[test]
+    fn test_inx_overflow() {
+        let mut cpu = CPU::new();
+
+        cpu.register_x = 0xff;
+        cpu.interpret(vec![0xe8, 0xe8, 0x00]);
+
+        assert_eq!(cpu.register_x, 1)
     }
 }

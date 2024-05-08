@@ -1,4 +1,6 @@
-use nes_emulator::CPU;
+use cpu::CPU;
+
+pub mod cpu;
 
 fn main() {
     let cpu = CPU::new();
