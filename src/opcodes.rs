@@ -48,9 +48,11 @@ lazy_static! {
 
   pub static ref OPCODES_MAP: HashMap<u8, &'static OpCode> = {
       let mut map = HashMap::new();
+
       for cpuop in &*CPU_OPS_CODES {
           map.insert(cpuop.code, cpuop);
       }
+      
       map
   };
 }
