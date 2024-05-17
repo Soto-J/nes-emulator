@@ -1,3 +1,6 @@
+use crate::cpu::AddressingMode;
+use std::collections::HashMap;
+
 pub struct OpCode {
     pub code: u8,
     pub mnemonic: &'static str,
@@ -52,7 +55,7 @@ lazy_static! {
       for cpuop in &*CPU_OPS_CODES {
           map.insert(cpuop.code, cpuop);
       }
-      
+
       map
   };
 }
