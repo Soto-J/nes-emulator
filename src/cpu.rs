@@ -30,11 +30,11 @@ trait Mem {
     fn mem_write(&mut self, addr: u16, data: u8);
 
     fn mem_read_u16(&self, addr: u16) -> u16 {
-        let first_eight_bits = self.mem_read(addr + 1) as u16;
-        let last_eight_bits = self.mem_read(addr) as u16;
+        let high = self.mem_read(addr + 1) as u16;
+        let low = self.mem_read(addr) as u16;
 
-        // u16::from_le_bytes([last_eight_bits as u8, first_eight_bits as u8])
-        (first_eight_bits << 8) | last_eight_bits
+        // u16::from_le_bytes([low as u8, high as u8])
+        (high << 8) | low
     }
 
     fn mem_write_u16(&mut self, addr: u16, data: u16) {
