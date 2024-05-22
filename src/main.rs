@@ -8,4 +8,5 @@ extern crate lazy_static;
 
 fn main() {
     // let cpu = CPU::new();
+    let mut arr = vec![1];
 }

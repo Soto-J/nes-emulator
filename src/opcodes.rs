@@ -21,9 +21,10 @@ impl OpCode {
     }
 }
 /*
-lazy_static! macro is used to define statics that require some form of initialization that cannot be done at compile time.
-This is particularly useful for data structures or values that require complex setup before they can be used.
-This macro ensures that the static is initialized only once, and the initialization is done in a thread-safe manner.
+lazy_static! macro is used to define statics that require 
+some form of initialization that cannot be done at compile time.
+This macro ensures that the static is initialized only once, 
+and the initialization is done in a thread-safe manner.
 */
 lazy_static! {
   pub static ref CPU_OPS_CODES: Vec<OpCode> = vec![

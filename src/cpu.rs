@@ -33,19 +33,22 @@ trait Mem {
         let first_eight_bits = self.mem_read(addr + 1) as u16;
         let last_eight_bits = self.mem_read(addr) as u16;
 
+        // u16::from_le_bytes([last_eight_bits as u8, first_eight_bits as u8])
         (first_eight_bits << 8) | last_eight_bits
     }
 
     fn mem_write_u16(&mut self, addr: u16, data: u16) {
-        // Shift 8 bits to the right,
-        // Get FIRST 8 bits EX: 0001 0010 0011 0100 >> 8 = 0000 0000 0001 0010
-        let first_eight_bits = (data >> 8) as u8;
-        // Get LAST 8 bits. EX: 0001 0010 0011 0100 & 1111 1111 = 0011 0100
-        let last_eight_bits = (data & 0xFF) as u8;
+        // Rust Endian support
+        // let [low, high] = data.to_le_bytes();
 
-        self.mem_write(addr, last_eight_bits);
-        self.mem_write(addr + 1, first_eight_bits);
-        // [0011 0100, 0001 0010]
+        // Get FIRST 8 bits EX: 0001 0010 0011 0100 >> 8 = 0000 0000 0001 0010
+        let high = (data >> 8) as u8;
+        // Get LAST 8 bits. EX: 0001 0010 0011 0100 & 1111 1111 = 0011 0100
+        let low = (data & 0xFF) as u8;
+
+        // Nes uses Little Endian method: [0011 0100, 0001 0010]
+        self.mem_write(addr, low);
+        self.mem_write(addr + 1, high);
     }
 }
 
@@ -66,7 +69,7 @@ impl CPU {
             register_y: 0,
             status: 0,
             program_counter: 0,
-            memory: [0; 0xFFFF], 
+            memory: [0; 0xFFFF],
         }
     }
 
@@ -77,13 +80,12 @@ impl CPU {
     }
 
     fn load(&mut self, program: Vec<u8>) {
-        let starting_address = 0x8000;
-        let ending_address = starting_address + program.len();
+        // Reserve address 0x8000 to 0xFFFF for ROM. this.arr.splice(start, end, ...program);
+        self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
 
-        // Reserve address 0x8000 to 0xFFFF for ROM
-        // this.arr.splice(start, end, ...program);
-        self.memory[starting_address..ending_address].copy_from_slice(&program[..]);
-
+        //  0xFFFC is the reset vector. A memory location the processor reads,
+        // when powered on or reset signal is received, to determine the address
+        // from which to start executing code.
         self.mem_write_u16(0xFFFC, 0x8000);
     }
 
@@ -128,9 +130,9 @@ impl CPU {
     }
 
     fn lda(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(mode);
+        let addr = self.get_operand_address(mode /*Immediate*/);
         let value = self.mem_read(addr);
-
+        // vec![0xa5, 0x10, 0x00]
         self.register_a = value;
         self.update_zero_and_negative_flags(self.register_a)
     }
