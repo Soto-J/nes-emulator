@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 pub struct OpCode {
     pub code: u8,
-    pub mnemonic: &'static str,
+    pub mnemonic: &'static str, // reference lifetime static
     pub len: u8,
     pub cycles: u8,
     pub mode: AddressingMode,
@@ -25,7 +25,18 @@ lazy_static! macro is used to define statics that require
 some form of initialization that cannot be done at compile time.
 This macro ensures that the static is initialized only once, 
 and the initialization is done in a thread-safe manner.
+
+Addressing Mode | Opcode | Bytes | Cycles
+Immediate       |  $69   |   2   |   2
+Zero Page	    |  $65   |   2   |   3
+Zero Page,X	    |  $75   |   2   |   4
+Absolute	    |  $6D   |   3   |   4
+Absolute,X	    |  $7D   |   3   |   4 (+1 if page crossed)
+Absolute,Y	    |  $79   |   3   |   4 (+1 if page crossed)
+(Indirect,X)    |  $61   |   2   |   6
+(Indirect),Y	|  $71   |   2   |   5 (+1 if page crossed)
 */
+
 lazy_static! {
   pub static ref CPU_OPS_CODES: Vec<OpCode> = vec![
       OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),

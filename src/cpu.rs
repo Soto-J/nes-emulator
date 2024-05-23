@@ -134,6 +134,16 @@ impl CPU {
         let value = self.mem_read(addr);
         // vec![0xa5, 0x10, 0x00]
         self.register_a = value;
+
+        /*
+            Carry Flag -> Not affected
+            Zero Flag -> Set if A = 0
+            Interrupted Disable -> Not affected
+            Decimal Mode Flag -> Not affected
+            Break Command -> Not affected
+            Overflow Flag -> Not affected
+            Negative Flag -> Set if bit 7 of A is set
+         */
         self.update_zero_and_negative_flags(self.register_a)
     }
 
@@ -205,12 +215,19 @@ impl CPU {
     }
 
     fn update_zero_and_negative_flags(&mut self, result: u8) {
+        // result: 0x10 = 0b10000 = 16
+        // status = (  0b0000_0000) = 0
+        //          (& 0b1111_1101)
         self.status = if result == 0 {
             self.status | 0b0000_0010 // 2
         } else {
             self.status & 0b1111_1101 // 253
         };
 
+        // result: 0x10 = 16 = (  0b0001_0000) = 0
+        //                     (& 0b1000_0000)
+        // status = (  0b0000_0000) = 0b0111_1111
+        //          (| 0b0111_1111)
         self.status = if result & 0b1000_0000 != 0 {
             self.status | 0b1000_0000 // 128
         } else {
