@@ -472,21 +472,19 @@ impl CPU {
 
         let carry = sum > 0xff;
 
-        self.status.insert(if carry {
-            CpuFlags::CARRY
+        if carry {
+            self.status.insert(CpuFlags::CARRY);
         } else {
-            CpuFlags::CARRY
-        });
+            self.status.remove(CpuFlags::CARRY);
+        }
 
         let result = sum as u8;
 
-        self.status.insert(
-            if (data ^ result) & (result ^ self.register_a) & 0x80 != 0 {
-                CpuFlags::OVERFLOW
-            } else {
-                CpuFlags::OVERFLOW
-            },
-        );
+        if (data ^ result) & (result ^ self.register_a) & 0x80 != 0 {
+            self.status.insert(CpuFlags::OVERFLOW);
+        } else {
+            self.status.remove(CpuFlags::OVERFLOW)
+        }
 
         self.set_register_a(result);
     }
@@ -826,6 +824,9 @@ impl CPU {
         } else {
             self.status.remove(CpuFlags::ZERO)
         }
+
+        self.status
+            .set(CpuFlags::NEGATIV, result & 0b1000_0000 != 0);
 
         if result & 0b1000_0000 != 0 {
             self.status.insert(CpuFlags::NEGATIV);
